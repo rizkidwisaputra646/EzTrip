@@ -154,14 +154,14 @@ export default function AdminDashboardPage() {
   const totalConfirmedGuests = confirmedBookings.reduce((sum, b) => sum + b.guestCount, 0);
 
   // Submit Manual Booking
-  const handleSaveManualBooking = (e: React.FormEvent) => {
+  const handleSaveManualBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualName.trim() || !manualPhone.trim()) {
       alert("Nama pemesan dan No WhatsApp wajib diisi!");
       return;
     }
 
-    const res = createManualBooking({
+    const res = await createManualBooking({
       leadGuestName: manualName,
       leadGuestPhone: manualPhone,
       leadGuestEmail: manualEmail,
@@ -183,9 +183,9 @@ export default function AdminDashboardPage() {
   };
 
   // Submit Reschedule
-  const handleConfirmReschedule = (newDate: string) => {
+  const handleConfirmReschedule = async (newDate: string) => {
     if (!selectedBookingForReschedule) return;
-    const res = rescheduleBooking(selectedBookingForReschedule.bookingCode, newDate);
+    const res = await rescheduleBooking(selectedBookingForReschedule.bookingCode, newDate);
     if (res.success) {
       setToastMessage(res.message);
       setShowRescheduleModal(false);
@@ -195,11 +195,11 @@ export default function AdminDashboardPage() {
   };
 
   // Submit New Schedule
-  const handleCreateSchedule = (e: React.FormEvent) => {
+  const handleCreateSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSchRange.trim()) return;
 
-    addSchedule({
+    await addSchedule({
       range: newSchRange,
       label: newSchLabel,
       status: "Tersedia",

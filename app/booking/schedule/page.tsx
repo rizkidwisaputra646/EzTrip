@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { PACKAGES } from "@/lib/mock-data";
 import { useEzTripStore } from "@/lib/store";
 import { ArrowLeft, ArrowRight, Calendar, CheckCircle2 } from "lucide-react";
 

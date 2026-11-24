@@ -1,0 +1,229 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  traveler
+  admin
+  tour_leader
+}
+
+model User {
+  id             String     @id @default(cuid())
+  email          String     @unique
+  name           String
+  phone          String?
+  city           String?
+  role           Role       @default(traveler)
+  password       String     // Bcrypt hashed
+  avatarUrl      String?
+  bookings       Booking[]
+  managedFleets  BusFleet[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Package {
+  id                String               @id // e.g. "pahawang-kiluan"
+  title             String
+  subtitle          String
+  category          String               // "Beach & Island" | "Wildlife Safari" | "Culture & Culinary"
+  duration          String               // "3 Hari 2 Malam"
+  departureSchedule String               // "Tiap Weekend (Jumat - Minggu)"
+  departureHub      String               // "Stasiun Tanjung Karang / Dermaga Ketapang"
+  price             Int                  // 850000
+  rating            Float                @default(4.8)
+  reviewCount       Int                  @default(0)
+  imagePath         String
+  badgeText         String?
+  tripType          String               @default("Open Trip")
+  description       String               @db.Text
+  highlights        String[]
+  availableSeats    Int                  @default(20)
+  isDeparting       Boolean              @default(true)
+  tiers             PackageTier[]
+  itinerary         ItineraryDay[]
+  schedules         DepartureSchedule[]
+  fleets            BusFleet[]
+  bookings          Booking[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@map("packages")
+}
+
+model PackageTier {
+  id        String   @id @default(cuid())
+  packageId String
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  name      String
+  price     Int
+  badge     String
+  perks     String[]
+
+  @@map("package_tiers")
+}
+
+model ItineraryDay {
+  id         String   @id @default(cuid())
+  packageId  String
+  package    Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  dayNumber  Int
+  title      String
+  activities String   @db.Text
+
+  @@map("itinerary_days")
+}
+
+model DepartureSchedule {
+  id             String    @id @default(cuid())
+  packageId      String?
+  package        Package?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  range          String    // e.g. "18 - 20 Okt 2026"
+  label          String    // e.g. "Weekend Ini"
+  status         String    @default("Tersedia") // "Tersedia" | "Sisa 4 Kursi" | "Penuh" | "Ditutup"
+  seatsAvailable Int       @default(20)
+  maxSeats       Int       @default(20)
+  badgeColor     String?
+  bookings       Booking[]
+  seats          BusSeat[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("departure_schedules")
+}
+
+model BusFleet {
+  id             String    @id @default(cuid())
+  name           String    // e.g. "Bus 01 • Jetbus 3+ Royal Class"
+  plateNumber    String
+  driverName     String
+  driverPhone    String
+  tourLeaderName String
+  tourLeaderId   String?
+  tourLeader     User?     @relation(fields: [tourLeaderId], references: [id], onDelete: SetNull)
+  packageId      String?
+  package        Package?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  totalQuota     Int       @default(20)
+  lockedSeats    String[]  // e.g. ["19", "20"]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("bus_fleets")
+}
+
+model Booking {
+  bookingCode         String             @id // e.g. "EZTRIP-179508-001"
+  userId              String
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packageId           String
+  package             Package            @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  scheduleId          String?
+  schedule            DepartureSchedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  packageName         String
+  packageSubtitle     String
+  packageImage        String
+  tierName            String
+  scheduleDate        String
+  departureTime       String             @default("07:00 WIB")
+  meetingPoint        String
+  guestCount          Int                @default(1)
+  leadGuestName       String
+  leadGuestPhone      String
+  leadGuestEmail      String
+  leadGuestIdCard     String
+  specialNotes        String?
+  subtotal            Int
+  insuranceFee        Int                @default(0)
+  discount            Int                @default(0)
+  totalAmount         Int
+  paymentMethod       String
+  paymentChannel      String
+  status              String             @default("Menunggu Pembayaran") // "Menunggu Pembayaran" | "Terkonfirmasi" | "Kedaluwarsa" | "Dibatalkan"
+  tourLeaderName      String?
+  tourLeaderPhone     String?
+  midtransOrderId     String?
+  outboundSeatNumbers String[]
+  returnSeatNumbers   String[]
+  vehicleId           String?
+  isCheckedIn         Boolean            @default(false)
+  checkedInAt         DateTime?
+  checkedInBy         String?
+  passengers          Passenger[]
+  payments            Payment[]
+  seats               BusSeat[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@map("bookings")
+}
+
+model Passenger {
+  id          String   @id @default(cuid())
+  bookingCode String
+  booking     Booking  @relation(fields: [bookingCode], references: [bookingCode], onDelete: Cascade)
+  fullName    String
+  isLead      Boolean  @default(false)
+  idCard      String?
+
+  @@map("passengers")
+}
+
+model BusSeat {
+  id          String            @id @default(cuid())
+  scheduleId  String
+  schedule    DepartureSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  seatNumber  String            // "01", "02", ...
+  isBooked    Boolean           @default(false)
+  isLocked    Boolean           @default(false)
+  bookingCode String?
+  booking     Booking?          @relation(fields: [bookingCode], references: [bookingCode], onDelete: SetNull)
+
+  @@unique([scheduleId, seatNumber])
+  @@map("bus_seats")
+}
+
+model Payment {
+  id                String    @id @default(cuid())
+  bookingCode       String
+  booking           Booking   @relation(fields: [bookingCode], references: [bookingCode], onDelete: Cascade)
+  midtransOrderId   String    @unique
+  paymentChannel    String
+  grossAmount       Int
+  vaNumber          String?
+  bank              String?
+  billerCode        String?
+  billKey           String?
+  qrString          String?   @db.Text
+  transactionStatus String    @default("pending") // "pending", "settlement", "expire", "cancel"
+  fraudStatus       String?
+  settlementTime    DateTime?
+  expiryTime        DateTime?
+  rawPayload        String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("payments")
+}
+
+model OperationalChecklist {
+  id                String   @id @default(cuid())
+  tripDate          String   @unique
+  briefingDone      Boolean  @default(true)
+  lifeJacketReady   Boolean  @default(false)
+  snorkelReady      Boolean  @default(false)
+  homestayConfirmed Boolean  @default(false)
+  boatCoordDone     Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("operational_checklists")
+}

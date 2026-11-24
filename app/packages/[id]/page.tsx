@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { PACKAGES } from "@/lib/mock-data";
 import { useEzTripStore } from "@/lib/store";
 import {
   Clock,
@@ -21,10 +20,10 @@ import {
 export default function PackageDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { currentUser } = useEzTripStore();
+  const { currentUser, packages, isLoading, error } = useEzTripStore();
 
   const packageId = params?.id as string;
-  const pkg = PACKAGES.find((p) => p.id === packageId) || PACKAGES[0];
+  const pkg = packages.find((p) => p.id === packageId) || packages[0];
 
   const isStaff = currentUser?.role === "admin" || currentUser?.role === "tour_leader";
 

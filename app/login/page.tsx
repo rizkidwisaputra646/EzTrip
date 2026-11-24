@@ -49,7 +49,7 @@ function LoginFormContent() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -63,8 +63,8 @@ function LoginFormContent() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      const result = login(email, password);
+    try {
+      const result = await login(email, password);
       setIsLoading(false);
 
       if (!result.success || !result.user) {
@@ -84,7 +84,10 @@ function LoginFormContent() {
           router.push("/dashboard");
         }
       }
-    }, 450);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg("Terjadi kesalahan saat menghubungi server.");
+    }
   };
 
   return (

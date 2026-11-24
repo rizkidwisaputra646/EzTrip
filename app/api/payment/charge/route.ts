@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 
 const MIDTRANS_SNAP_URL = process.env.MIDTRANS_SNAP_URL || "https://app.sandbox.midtrans.com";

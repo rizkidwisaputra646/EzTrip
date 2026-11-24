@@ -36,7 +36,7 @@ function RegisterContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -66,21 +66,31 @@ function RegisterContent() {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      register({
+    try {
+      const result = await register({
         name,
         email,
         phone,
         city: city || "Bandar Lampung",
         role: "traveler",
+        password,
       });
       setIsLoading(false);
+
+      if (!result.success || !result.user) {
+        setErrorMsg(result.message || "Gagal melakukan pendaftaran.");
+        return;
+      }
+
       if (redirectUrl) {
         router.push(redirectUrl);
       } else {
         router.push("/dashboard");
       }
-    }, 600);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg("Terjadi kesalahan saat mendaftar.");
+    }
   };
 
   return (

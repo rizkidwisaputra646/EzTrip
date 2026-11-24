@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { PACKAGES } from "@/lib/mock-data";
 import { useEzTripStore } from "@/lib/store";
 import {
   ArrowLeft,
@@ -16,7 +15,7 @@ import {
 function BookingSeatsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currentUser, isInitialized, fleets, bookings } = useEzTripStore();
+  const { currentUser, isInitialized, fleets, bookings, packages } = useEzTripStore();
 
   const packageId = searchParams.get("packageId") || "pahawang-kiluan";
   const schedule = searchParams.get("schedule") || "18 - 20 Okt 2026";
@@ -45,7 +44,7 @@ function BookingSeatsContent() {
     }
   }, [currentUser, isInitialized, packageId, router]);
 
-  const pkg = PACKAGES.find((p) => p.id === packageId) || PACKAGES[0];
+  const pkg = packages.find((p) => p.id === packageId) || packages[0];
 
   // Dynamic fleet locked seats & confirmed booked seats for this package & schedule
   const currentFleet = fleets.find((f) => f.packageId === packageId) || fleets[0];

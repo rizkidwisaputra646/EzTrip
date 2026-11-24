@@ -30,6 +30,16 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Demo Video & Heavy Media (Keeps repository lightweight, avoids GitHub 100MB limit)
+/demo-video/
+*.mp4
+*.wav
+*.webm
+
+# Python Temporary Files
+__pycache__/
+*.pyc
+
 # Vercel Deployment Artifacts
 .vercel
 
